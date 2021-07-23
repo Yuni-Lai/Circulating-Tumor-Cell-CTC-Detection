@@ -1,7 +1,12 @@
 # CTC
 
 # 1.细胞识别算法思路
-
+01_CTC_detection_pipeline.py<br>
+输入图片：三个通道（明场DIC、DAPI（蓝色，细胞核质）、CD45（黄色））
+![](./Pictures/input1.png)
+![](./Pictures/input2.png)
+![](./Pictures/input3.png)
+---------------------
 1. 预处理（函数preprocessing）。图像由于光照强度不同，细胞密度不同，需要做预处理。
 
 1). 彩色图改成灰度图。<br>
@@ -26,7 +31,7 @@
 
 根据沃罗诺伊图 (Voronoi diagram)算法，一个细胞核一个点，将这些点镶嵌在不重叠的多边形中，这些多边形的边就是粘连细胞的分割线，从而将明场通道粘连的细胞根据它们的细胞核位置切开。（该步骤调用了R语言的包EBImage）
 
-![](./Voronoi.png)
+![](./Pictures/Voronoi.png)
 
 _Figure 1 Voronoi diagram_
 
@@ -42,10 +47,40 @@ _Figure 1 Voronoi diagram_
 
 1). 矫正背景噪声:背景提取(80\*80平均滤波器。80这个值应该根据图片大小做调整，80适用于2400\*2400的图像)，将图片与该图片的背景做差，得到校正后的荧光值。用步骤7的结果，计算出每个细胞核内荧光强度平均值（细胞核的识别更准确，也可以用细胞的识别结果）<br>
 
-2). 根据细胞大小，细胞核大小，黄色通道荧光值，判断是否为CTC。在这之前，需要确定各个参数的分布，根据分布来计算P-值，或其他衡量指标。（函数CTC）
+2). 根据细胞大小，细胞核大小，黄色通道荧光值，判断是否为CTC。在这之前，需要确定各个参数的分布，根据分布来计算P-值，或其他衡量指标。（函数CTC）<br>
 
-# Circulating Tumor Cell Detection Research Proposal
+识别结果：（蓝色为细胞核，绿色为细胞质。每个部分都可以获得其基本信息：大小，圆度等）
+![](./Pictures/result.png)
 
+更多详情参见:./PPT/Multi-Channel Cell Segmentation introduction.pptx
+
+#2. 根据样本的分布估计CTC阈值
+02_estimate_distribution.py<br>
+我们需要区分：正常细胞（血液中的白细胞及其他细胞），和CTC（肿瘤细胞），而它们混合在样本中，但它们的分布不同。
+用高斯混合分布估计分别估计出这两种成分的分布，来计算p-value或贝叶斯因子。
+
+![](./Pictures/Distribution.png)
+---------------------
+![](./Pictures/GMM.png)
+
+---------------------
+![](./Pictures/Distribution2.png)
+
+---------------------
+![](./Pictures/P_value_Test.png)
+
+---------------------
+![](./Pictures/Bayes_test.png)
+
+---------------------
+![](./Pictures/estimate_result.png)
+---------------------
+
+
+
+更多详情参见:./PPT/CTC_cutoff_estimate.pptx
+
+# 3. Circulating Tumor Cell Detection Research Proposal
 
 ## Introduction
 
@@ -64,7 +99,7 @@ To improve the efficiency of CTC detection, we propose an automatic CTC detectio
 
 According to different kinds of fluorescence staining images, we have developed a cell detection algorithm, which can automatically detect every cell in the images and quantify the size, shape, and signal brightness of each cell. To make it easily access, we develop a web tool in which user can upload their own images to detect and quantify the cell. Besides, based on the characteristics obtained, we estimated the statistical significance of various threshold of CTC. So far, we have collected 123 cases of breast cancer patients in different stages.
 
-
+![](./Pictures/StudyWorkFlow.png)
 ## Material Requirement
 
 However, to estimate the sensitivity and specificity, we need to collect 100 cases of healthy women with the same age distribution of cancer group, shown in Table 1, to do the CTC testing. For the healthy control group people, they should not have severe disease, especially the disease that related to cancer. For each participant, we would only need to collect 400_ml_ peripheral blood.
@@ -78,6 +113,8 @@ _Table 1 The age distribution requirement of 100 healthy control cases._
 | 50-70 | 女 | 42.53% | 43 |
 | \&gt;70 | 女 | 4.60% | 4 |
 
+More details:
+./PPT/Blood liquid biopsy based on circulating tumor cells .pptx
 
 ## References
 
